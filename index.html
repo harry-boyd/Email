@@ -2,32 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>BEEF Signature Builder</title>
+<title>BEEF Email Signature Builder</title>
 <style>
   :root {
     --ink: #1a1a1a;
     --muted: #6b6b6b;
     --line: #e4e2e0;
     --accent: #e8632e;
-    --panel-bg: #fafafa;
     --page-bg: #ffffff;
-    --input-bg: #ffffff;
-    --input-disabled-bg: #f1f0ef;
-    --input-disabled-ink: #b5b3b1;
-    --switch-bg: #d8d6d4;
     --sig-grey: #979695;
   }
 
   html[data-theme="dark"] {
-    --ink: #f2f0ee;
-    --muted: #a9a6a3;
-    --line: #45433f;
-    --panel-bg: #2E2C2A;
     --page-bg: #2E2C2A;
-    --input-bg: #37352f;
-    --input-disabled-bg: #333130;
-    --input-disabled-ink: #706d69;
-    --switch-bg: #55524f;
   }
 
   * { box-sizing: border-box; }
@@ -46,19 +33,29 @@
     display: flex;
     height: 100vh;
     min-height: 560px;
+    padding: 20px;
+    gap: 20px;
   }
 
   /* ---------- Left panel ---------- */
   .panel {
+    --ink: #f2f0ee;
+    --muted: #a9a6a3;
+    --line: #4a352a;
+    --input-bg: #3f2a1c;
+    --input-disabled-bg: #38251a;
+    --input-disabled-ink: #776a5f;
+    --switch-bg: #5a4535;
     width: 280px;
     flex-shrink: 0;
-    background: var(--panel-bg);
-    border-right: 1px solid var(--line);
-    padding: 28px 24px;
+    background: #311D11;
+    color: var(--ink);
+    border-radius: 24px;
+    padding: 26px 22px;
     display: flex;
     flex-direction: column;
     gap: 18px;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
   }
 
   .panel h1 {
@@ -66,13 +63,6 @@
     font-weight: 600;
     margin: 0 0 4px 0;
     letter-spacing: 0.01em;
-  }
-
-  .panel p.sub {
-    margin: 0 0 8px 0;
-    font-size: 12.5px;
-    color: var(--muted);
-    line-height: 1.5;
   }
 
   .field {
@@ -168,8 +158,14 @@
     transform: translateX(16px);
   }
 
-  .copy-btn {
+  .copy-actions {
     margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .copy-btn {
     padding: 10px 14px;
     font-size: 13.5px;
     font-weight: 600;
@@ -183,6 +179,13 @@
 
   .copy-btn:hover { background: #d1541f; }
   .copy-btn:active { background: #ba491b; }
+
+  .copy-note {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--muted);
+  }
 
   .copy-status {
     font-size: 12px;
@@ -198,6 +201,10 @@
     align-items: center;
     justify-content: center;
     transition: background 0.15s ease;
+  }
+
+  .stage #signature {
+    pointer-events: none;
   }
 
   .sig-name {
@@ -223,18 +230,7 @@
 
 <div id="app">
   <div class="panel">
-    <div>
-      <h1>Signature builder</h1>
-      <p class="sub">Fill in the details, then copy the result straight into your email client's signature settings.</p>
-    </div>
-
-    <div class="toggle-row">
-      <label for="themeToggle">Dark mode</label>
-      <label class="switch">
-        <input type="checkbox" id="themeToggle" />
-        <span class="slider"></span>
-      </label>
-    </div>
+    <h1>BEEF Email Signature Builder</h1>
 
     <div class="field">
       <label for="nameInput">Name</label>
@@ -246,11 +242,6 @@
       <input type="text" id="roleInput" value="Creative Director &amp; Co-Founder" />
     </div>
 
-    <div class="field">
-      <label for="phoneInput">Phone number</label>
-      <input type="text" id="phoneInput" value="+64 22 426 7658" />
-    </div>
-
     <div class="toggle-row">
       <label for="phoneToggle">Show phone number</label>
       <label class="switch">
@@ -259,8 +250,25 @@
       </label>
     </div>
 
-    <button class="copy-btn" id="copyBtn">Copy signature</button>
+    <div class="field" id="phoneField">
+      <label for="phoneInput">Phone number</label>
+      <input type="text" id="phoneInput" value="+64 22 426 7658" />
+    </div>
+
+    <div class="copy-actions">
+      <button class="copy-btn" id="copyGmailBtn">Copy for Gmail</button>
+      <button class="copy-btn" id="copyAppleBtn">Copy for Apple Mail</button>
+    </div>
+    <p class="copy-note">Apple Mail automatically adds a line break between images so this copies with one less line break.</p>
     <div class="copy-status" id="copyStatus"></div>
+
+    <div class="toggle-row" style="margin-top: auto;">
+      <label for="themeToggle">Dark mode</label>
+      <label class="switch">
+        <input type="checkbox" id="themeToggle" />
+        <span class="slider"></span>
+      </label>
+    </div>
   </div>
 
   <div class="stage">
@@ -272,7 +280,8 @@
           <div class="sig-name" id="outName" style="color:#979695; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; font-size:13px; font-weight:bold; line-height:15px;">Harry Boyd</div>
           <div class="sig-detail" id="outRole" style="color:#979695; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; font-size:13px; line-height:15px;">Creative Director &amp; Co-Founder</div>
           <div class="sig-detail" id="outPhone" style="color:#979695; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; font-size:13px; line-height:15px;">+64 22 426 7658</div>
-          <div class="sig-detail" style="color:#979695; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; font-size:13px; line-height:15px;"><a href="https://beef.work" class="sig-link" style="color:#979695; text-decoration:underline;">beef.work</a><br>&nbsp;</div>
+          <div class="sig-detail" style="color:#979695; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; font-size:13px; line-height:15px;"><a href="https://beef.work" class="sig-link" style="color:#979695; text-decoration:underline;">beef.work</a></div>
+          <br id="gmailBreak">
           <img src="https://res.cloudinary.com/fmgaooso/image/upload/v1783644940/Group_1_rguxp8.png" width="100" alt="BEEF" style="display:block; border:0;" />
         </td>
       </tr>
@@ -315,19 +324,21 @@
   const outName = document.getElementById('outName');
   const outRole = document.getElementById('outRole');
   const outPhone = document.getElementById('outPhone');
+  const phoneField = document.getElementById('phoneField');
 
   function render() {
     outName.textContent = nameInput.value;
     outRole.textContent = roleInput.value;
     outPhone.textContent = phoneInput.value;
     outPhone.style.display = phoneToggle.checked ? 'block' : 'none';
+    phoneField.style.display = phoneToggle.checked ? 'flex' : 'none';
   }
 
   [nameInput, roleInput, phoneInput].forEach(el => el.addEventListener('input', render));
   phoneToggle.addEventListener('change', render);
   render();
 
-  document.getElementById('copyBtn').addEventListener('click', () => {
+  function copySignature(clientLabel) {
     const sig = document.getElementById('signature');
     const status = document.getElementById('copyStatus');
 
@@ -339,13 +350,24 @@
 
     try {
       const ok = document.execCommand('copy');
-      status.textContent = ok ? 'Copied! Paste into your email client.' : 'Copy failed — select the signature manually and press Cmd/Ctrl+C.';
+      status.textContent = ok ? `Copied for ${clientLabel}! Paste into your email client.` : 'Copy failed — select the signature manually and press Cmd/Ctrl+C.';
     } catch (err) {
       status.textContent = 'Copy failed — select the signature manually and press Cmd/Ctrl+C.';
     }
 
     selection.removeAllRanges();
     setTimeout(() => { status.textContent = ''; }, 4000);
+  }
+
+  document.getElementById('copyGmailBtn').addEventListener('click', () => {
+    copySignature('Gmail');
+  });
+
+  document.getElementById('copyAppleBtn').addEventListener('click', () => {
+    const gmailBreak = document.getElementById('gmailBreak');
+    gmailBreak.style.display = 'none';
+    copySignature('Apple Mail');
+    gmailBreak.style.display = '';
   });
 </script>
 
