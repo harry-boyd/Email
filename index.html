@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BEEF Signature Builder</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e4e2e0;
+    --accent: #e8632e;
+    --panel-bg: #fafafa;
+    --page-bg: #ffffff;
+    --input-bg: #ffffff;
+    --input-disabled-bg: #f1f0ef;
+    --input-disabled-ink: #b5b3b1;
+    --switch-bg: #d8d6d4;
+    --sig-grey: #979695;
+  }
+
+  html[data-theme="dark"] {
+    --ink: #f2f0ee;
+    --muted: #a9a6a3;
+    --line: #45433f;
+    --panel-bg: #2E2C2A;
+    --page-bg: #2E2C2A;
+    --input-bg: #37352f;
+    --input-disabled-bg: #333130;
+    --input-disabled-ink: #706d69;
+    --switch-bg: #55524f;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--page-bg);
+    color: var(--ink);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  #app {
+    display: flex;
+    height: 100vh;
+    min-height: 560px;
+  }
+
+  /* ---------- Left panel ---------- */
+  .panel {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--panel-bg);
+    border-right: 1px solid var(--line);
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .panel h1 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    letter-spacing: 0.01em;
+  }
+
+  .panel p.sub {
+    margin: 0 0 8px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field label {
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  .field input[type="text"] {
+    font-size: 13.5px;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    outline: none;
+    background: var(--input-bg);
+    color: var(--ink);
+    font-family: inherit;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .field input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232, 99, 46, 0.12);
+  }
+
+  .field input[type="text"]:disabled {
+    background: var(--input-disabled-bg);
+    color: var(--input-disabled-ink);
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .toggle-row label {
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  .switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .switch .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--switch-bg);
+    border-radius: 999px;
+    transition: background 0.15s ease;
+  }
+
+  .switch .slider::before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    top: 2px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: transform 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+
+  .switch input:checked + .slider {
+    background: var(--accent);
+  }
+
+  .switch input:checked + .slider::before {
+    transform: translateX(16px);
+  }
+
+  .copy-btn {
+    margin-top: 8px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #ffffff;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .copy-btn:hover { background: #d1541f; }
+  .copy-btn:active { background: #ba491b; }
+
+  .copy-status {
+    font-size: 12px;
+    color: var(--accent);
+    min-height: 16px;
+    text-align: center;
+  }
+
+  /* ---------- Center preview ---------- */
+  .stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+  }
+
+  .sig-name {
+    color: var(--sig-grey);
+    font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 15px;
+  }
+  .sig-detail {
+    color: var(--sig-grey);
+    font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    line-height: 15px;
+  }
+  .sig-link {
+    color: var(--sig-grey);
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="panel">
+    <div>
+      <h1>Signature builder</h1>
+      <p class="sub">Fill in the details, then copy the result straight into your email client's signature settings.</p>
+    </div>
+
+    <div class="toggle-row">
+      <label for="themeToggle">Dark mode</label>
+      <label class="switch">
+        <input type="checkbox" id="themeToggle" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="field">
+      <label for="nameInput">Name</label>
+      <input type="text" id="nameInput" value="Harry Boyd" />
+    </div>
+
+    <div class="field">
+      <label for="roleInput">Role</label>
+      <input type="text" id="roleInput" value="Creative Director &amp; Co-Founder" />
+    </div>
+
+    <div class="field">
+      <label for="phoneInput">Phone number</label>
+      <input type="text" id="phoneInput" value="+64 22 426 7658" />
+    </div>
+
+    <div class="toggle-row">
+      <label for="phoneToggle">Show phone number</label>
+      <label class="switch">
+        <input type="checkbox" id="phoneToggle" checked />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <button class="copy-btn" id="copyBtn">Copy signature</button>
+    <div class="copy-status" id="copyStatus"></div>
+  </div>
+
+  <div class="stage">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:340px;" id="signature">
+      <tr>
+        <td style="padding:0;">
+          <br>
+          <div class="sig-detail" style="color:#979695; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; font-size:13px; line-height:15px;">&mdash;</div>
+          <div class="sig-name" id="outName" style="color:#979695; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; font-size:13px; font-weight:bold; line-height:15px;">Harry Boyd</div>
+          <div class="sig-detail" id="outRole" style="color:#979695; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; font-size:13px; line-height:15px;">Creative Director &amp; Co-Founder</div>
+          <div class="sig-detail" id="outPhone" style="color:#979695; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; font-size:13px; line-height:15px;">+64 22 426 7658</div>
+          <div class="sig-detail" style="color:#979695; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; font-size:13px; line-height:15px;"><a href="https://beef.work" class="sig-link" style="color:#979695; text-decoration:underline;">beef.work</a><br>&nbsp;</div>
+          <img src="https://res.cloudinary.com/fmgaooso/image/upload/v1783644940/Group_1_rguxp8.png" width="100" alt="BEEF" style="display:block; border:0;" />
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function applyTheme(isDark) {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    themeToggle.checked = isDark;
+  }
+
+  function currentPreference() {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || stored === 'light') return stored === 'dark';
+    return prefersDark.matches;
+  }
+
+  applyTheme(currentPreference());
+
+  themeToggle.addEventListener('change', () => {
+    localStorage.setItem('theme', themeToggle.checked ? 'dark' : 'light');
+    applyTheme(themeToggle.checked);
+  });
+
+  // Follow the OS setting live, as long as the user hasn't manually overridden it.
+  prefersDark.addEventListener('change', (e) => {
+    if (!localStorage.getItem('theme')) applyTheme(e.matches);
+  });
+
+  const nameInput = document.getElementById('nameInput');
+  const roleInput = document.getElementById('roleInput');
+  const phoneInput = document.getElementById('phoneInput');
+  const phoneToggle = document.getElementById('phoneToggle');
+
+  const outName = document.getElementById('outName');
+  const outRole = document.getElementById('outRole');
+  const outPhone = document.getElementById('outPhone');
+
+  function render() {
+    outName.textContent = nameInput.value;
+    outRole.textContent = roleInput.value;
+    outPhone.textContent = phoneInput.value;
+    outPhone.style.display = phoneToggle.checked ? 'block' : 'none';
+  }
+
+  [nameInput, roleInput, phoneInput].forEach(el => el.addEventListener('input', render));
+  phoneToggle.addEventListener('change', render);
+  render();
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    const sig = document.getElementById('signature');
+    const status = document.getElementById('copyStatus');
+
+    const range = document.createRange();
+    range.selectNode(sig);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    try {
+      const ok = document.execCommand('copy');
+      status.textContent = ok ? 'Copied! Paste into your email client.' : 'Copy failed — select the signature manually and press Cmd/Ctrl+C.';
+    } catch (err) {
+      status.textContent = 'Copy failed — select the signature manually and press Cmd/Ctrl+C.';
+    }
+
+    selection.removeAllRanges();
+    setTimeout(() => { status.textContent = ''; }, 4000);
+  });
+</script>
+
+</body>
+</html>
